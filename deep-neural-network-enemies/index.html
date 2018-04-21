@@ -1,0 +1,105 @@
+<html>
+	<head>
+	  <link rel="stylesheet" href="styles/style.css">
+	  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+	</head>
+
+	<body>
+	    <section id="visual">
+	    	<h1>Which AI is going to outsmart?</h1>
+	    	<canvas id="canvas" width="1300" height="800"></canvas>
+		</section>
+
+		<aside class="data first-player">
+			<div class="header-info">
+				<p class="player-name">Player 1</p>
+				<div class="playercircle blue">Blue</div>
+			</div>
+			<hr/>
+			<div class="game-details">
+				<p class="detail-name">Player cordinates (x,y):</p>
+				<!--SPAN-->
+				<div class="detail-value"> <p id="cordinates-first"> (0,0) </p> </div>
+			</div>
+			<div class="game-details">
+				<p class="detail-name">Vision field (degrees):</p>
+				<div class="detail-value"><p id="degress-first">30</p></div>
+			</div>
+			<div class="game-details">
+				<p class="detail-name">Can I see the enemy?</p>
+				<div class="detail-value"><p id="enemy-detected-first">True</p></div>
+			</div>
+			<div class="game-details">
+				<p class="detail-name">Can I see the bullet?</p>
+				<div class="detail-value"><p id="bullet-detected-first">True</p></div>
+			</div>
+			<div class="game-details">
+				<p class="detail-name">Shooting time left:</p>
+				<div class="detail-value"><p id="shooting-time-first">20</p></div>
+			</div>
+			<div class="game-details">
+				<p class="detail-name">Algorithm Type:</p>
+				<div class="detail-value">
+					<select class="algorithm-type">
+ 					 	<option value="ga">Genetic Algorithm</option>
+ 						<option value="pso">Partical swarm optimization</option>
+  						<option value="de">Differential evolution</option>
+					</select>
+				</div>
+			</div>
+		</aside>
+
+
+		<side class="data game-result">
+			<p id="result">1:0</p>
+		</side>
+
+
+		<aside class="data second-player">
+			<div class="header-info">
+				<p class="player-name">Player 2</p>
+				<div class="playercircle brown">Brown</div>
+			</div>
+			<hr/>
+			<div class="game-details">
+				<p class="detail-name">Player cordinates (x,y):</p>
+				<div class="detail-value"> <p id="cordinates-second"> (0,0) </p> </div>
+			</div>
+			<div class="game-details">
+				<p class="detail-name">Vision field (degrees):</p>
+				<div class="detail-value"><p id="degress-second">30</p></div>
+			</div>
+			<div class="game-details">
+				<p class="detail-name">Can I see the enemy?</p>
+				<div class="detail-value"><p id="enemy-detected-second">True</p></div>
+			</div>
+			<div class="game-details">
+				<p class="detail-name">Can I see the bullet?</p>
+				<div class="detail-value"><p id="bullet-detected-second">True</p></div>
+			</div>
+			<div class="game-details">
+				<p class="detail-name">Shooting time left:</p>
+				<div class="detail-value"><p id="shooting-time-second">20</p></div>
+			</div>
+			<div class="game-details">
+				<p class="detail-name">Algorithm Type:</p>
+				<div class="detail-value">
+					<select class="algorithm-type">
+ 					 	<option value="ga">Genetic Algorithm</option>
+ 						<option value="pso">Partical swarm optimization</option>
+  						<option value="de">Differential evolution</option>
+					</select>
+				</div>
+			</div>
+		</aside>
+
+		<div class="clr"></div>
+
+		<footer id="contact-info">
+  			<p>Created by: Mantas Savaniakas</p>
+  			<p>Contact information: <a href="mailto:mantasavas@gmail.com">mantasavas@gmail.com</a>.</p>
+		</footer>
+
+	   	<script src="scripts/script.js"></script>
+	</body>
+</html>
