@@ -209,7 +209,7 @@ function drawEntity(circle_index)
 
     if(crossedBorder(circles[circle_index].x_cordinate, circles[circle_index].y_cordinate, circle_index))
     {
-        circles[deter_index].number_of_hits += 5;
+        circles[circle_index].number_of_hits -= 5;
         resetGame();
     }
 
@@ -361,7 +361,7 @@ function drawEntity(circle_index)
         if(intersects == 1 || intersects == 0)
         {
             //console.log("Intersected!!");
-            circles[circle_index].number_of_hits++;
+            circles[circle_index].number_of_hits += 30;
             //console.log("Result is: " + circles[0].number_of_hits + " : " + circles[1].number_of_hits);
             circles[circle_index].shooted = false;
             circles[circle_index].shooting_time = 100;

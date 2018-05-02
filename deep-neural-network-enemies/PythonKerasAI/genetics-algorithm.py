@@ -21,6 +21,8 @@ class Enemy:
   #  0 => no
   selectable = 0
 
+  played = 0
+
   # Output
   turn_left = 0
   turn_right = 0
@@ -46,6 +48,15 @@ class Enemy:
 
 
 class GeneticAlgorithm:
+  MUTATION_RATE = 0.25
+
+  GAME_ROUNDS = 30
+  ROUND_TIME = 60
+
+  # Total must be GAME_ROUNDS * 2
+  SELECTABLE = 20
+  # Multiply by 2
+  NEW_POPULATION = 20
 
   # Setting up game
   def __init__(self):
@@ -61,51 +72,89 @@ class GeneticAlgorithm:
   def runAlgorithm(self):
     self.players_pool = []
 
-    x = 0
     enemyNum = 1
-    while x < 5:
-      # Creating two artificial enemies
-      self.enemy_blue = Enemy()
-      self.enemy_blue.color = 'blue'
-      self.enemy_blue.number = enemyNum
-      enemyNum += 1
-      self.enemy_brown = Enemy()
-      self.enemy_brown.color = 'brown'
-      self.enemy_brown.number = enemyNum
-      enemyNum += 1
+    generation_num = 0;
 
-      # Creating feed forward neural network for each player
-      self.initiliazeNeuralNetwork(self.enemy_blue)
-      self.initiliazeNeuralNetwork(self.enemy_brown)
+    # Execute till players envolve
+    while True:
+      generation_num += 1
+      print("==================== This Is A New Game Round ========================")
+      x = 0
 
-      # Starting new game round
-      self.game_round()
+      # If true, create first population with random weights
+      if generation_num == 1:
+        while x < self.GAME_ROUNDS:
+          x += 1
+          # Creating two artificial enemies, first time weights are chosen randomly
 
-      print("================== Fitness Score ==================")
+          print()
+          print("======================== Round: ", x, " ==============================")
 
-      fitnes_scores = self.driver.find_element_by_id("result").get_attribute('innerHTML').split(":")
-      self.enemy_brown.fitness = int(fitnes_scores[0])
-      self.enemy_blue.fitness = int(fitnes_scores[1])
+          self.enemy_blue = Enemy()
+          self.enemy_blue.color = 'blue'
+          self.enemy_blue.number = enemyNum
+          enemyNum += 1
+          self.enemy_brown = Enemy()
+          self.enemy_brown.color = 'brown'
+          self.enemy_brown.number = enemyNum
+          enemyNum += 1
 
-      self.players_pool.append(self.enemy_brown)
-      self.players_pool.append(self.enemy_blue)
+          self.initiliazeNeuralNetwork(self.enemy_blue)
+          self.initiliazeNeuralNetwork(self.enemy_brown)
 
-      # Restarting game with new parameters
-      self.driver.refresh()
+          # Starting new game round
+          self.game_round(self.enemy_blue, self.enemy_brown)
 
-      x += 1
+          fitnes_scores = self.driver.find_element_by_id("result").get_attribute('innerHTML').split(":")
+          self.enemy_brown.fitness = int(fitnes_scores[0])
+          self.enemy_blue.fitness = int(fitnes_scores[1])
 
-    # Picking only the fittests and setting selectable to 1
-    self.roulette_selection_fittest(self.players_pool)
-    self.model_crossover(self.players_pool)
+          # Only add in the beginning of the game
 
-    for player in self.players_pool:
-      print("============== Player ================")
-      print("player color: ", player.color)
-      print("player number: ", player.number)
-      print("player fitness: ", player.fitness)
-      print("player selectable: ", player.selectable)
+          self.players_pool.append(self.enemy_brown)
+          self.players_pool.append(self.enemy_blue)
 
+          print("Refreshing page!!!!")
+          self.driver.refresh()
+
+
+      else:
+        for player_one in self.players_pool:
+          for player_two in self.players_pool:
+            # Checks if they haven't played already, and they are different players with different colors
+            if player_one.played == 0 and player_two.played == 0 and player_one.color != player_two.color:
+              x += 1
+              print()
+              print("======================== Round: ", x, " ==============================")
+
+              player_one.played = 1
+              player_two.played = 1
+              if player_one.color == 'blue':
+                self.game_round(player_one, player_two)
+                fitnes_scores = self.driver.find_element_by_id("result").get_attribute('innerHTML').split(":")
+                player_two.fitness = int(fitnes_scores[0])
+                player_one.fitness = int(fitnes_scores[1])
+              else:
+                self.game_round(player_two, player_one)
+                fitnes_scores = self.driver.find_element_by_id("result").get_attribute('innerHTML').split(":")
+                player_one.fitness = int(fitnes_scores[0])
+                player_two.fitness = int(fitnes_scores[1])
+
+              print("Refreshing page!!!!")
+              self.driver.refresh()
+              break
+
+      # Picking only the fittests and setting selectable to 1
+      print()
+      print("===================== generation: ", generation_num, " =========================")
+      print("performing roulete selection...")
+      self.roulette_selection_fittest(self.players_pool)
+      print("model crossover...")
+      self.model_crossover(self.players_pool)
+      print("initiliazing new generation...")
+      self.initialize_game(self.players_pool)
+      print("=====================================================================")
+      print()
 
 
   # Initiliazing enemy neural network, 1 generation is made from random weights
@@ -123,18 +172,18 @@ class GeneticAlgorithm:
 
 
   # Game single round, each round consist of new population
-  def game_round(self):
+  def game_round(self, blue, brown):
     x = 0
-    while x < 70:
-      self.upadateCurrentInput(self.enemy_blue, "first", "second")
-      self.upadateCurrentInput(self.enemy_brown, "second", "first")
+    while x < self.ROUND_TIME:
+      print("time played: ", x)
+      self.upadateCurrentInput(blue, "first", "second")
+      self.upadateCurrentInput(brown, "second", "first")
 
       # Blue predict
-      self.predict_action(self.enemy_blue, self.enemy_brown)
+      self.predict_action(blue, brown)
 
       # Brown predict
-      self.predict_action(self.enemy_brown, self.enemy_blue)
-
+      self.predict_action(brown, blue)
       x += 1
 
 
@@ -155,7 +204,7 @@ class GeneticAlgorithm:
 
   # Predicts enemy next movement
   def predict_action(self, player, enemy):
-    print(player.color, player.see_enemy, player.see_bullet, player.enemy_fired, enemy.vision_width)
+    #print(player.color, player.see_enemy, player.see_bullet, player.enemy_fired, enemy.vision_width)
     neural_input = np.asarray([player.see_enemy, player.see_bullet, player.enemy_fired, enemy.vision_width])
     neural_input = np.atleast_2d(neural_input)
 
@@ -189,21 +238,21 @@ class GeneticAlgorithm:
   def roulette_selection_fittest(self, players):
     self.normalize_fitness_score(players)
 
+
     total_fit = float(sum(player.fitness for player in players))
     relative_fitness = [player.fitness / total_fit for player in players]
     probabilities = [sum(relative_fitness[:i+1]) for i in range(len(relative_fitness))]
 
     found = 0
-    while found < 4:
+    while found < self.SELECTABLE:
         r = random()
         for (i, player) in enumerate(players):
+            print(player.selectable)
             # only pick if it haven't been picked before
             if r <= probabilities[i] and players[i].selectable == 0:
                 players[i].selectable = 1
                 found += 1
-                print(i)
                 break
-
 
   def normalize_fitness_score(self, players):
 
@@ -225,50 +274,76 @@ class GeneticAlgorithm:
         player.fitness += 1
 
 
+
   def model_crossover(self, players):
 
+    # Indexes of best players in players pool
     indexes = []
     for i, player in enumerate(players):
       if player.selectable == 1:
         indexes.append(i)
 
-
-
-
-    for iteration in range(6):
+    for iteration in range(self.NEW_POPULATION):
 
       # Generating random numbers two chose random parents
-      print("Generating random numbers: ")
       rand_num_one = randint(0, 3)
       rand_num_two = randint(0, 3)
-      print(rand_num_one)
-      print(rand_num_two)
+      while rand_num_one == rand_num_two:
+        rand_num_two = randint(0, 3)
 
       # Performing crossover, then parents produces offsprings
-      weights1 = players[indexes[rand_num_one]].model.get_weights()
-      weights2 = players[indexes[rand_num_two]].model.get_weights()
-      weightsnew1 = weights1
-      weightsnew2 = weights2
-      weightsnew1[0] = weights2[0]
-      weightsnew2[0] = weights1[0]
+      weights1 = players[indexes[rand_num_one]].model.get_weights().copy()
+      weights2 = players[indexes[rand_num_two]].model.get_weights().copy()
 
+
+      weightsnew1 = weights1.copy()
+      weightsnew2 = weights2.copy()
+
+      weightsnew1[0] = weights2[0].copy()
+      weightsnew2[0] = weights1[0].copy()
 
 
       # Performing mutation with probability, probability that offsprint will mutate
-      #mutated_weights1 = self.model_mutate(weightsnew1)
-      #mutated_weights2 = self.model_mutate(weightsnew2)
+      self.model_mutate(weightsnew1)
+      self.model_mutate(weightsnew2)
+
 
       # Adding new offsprings (new members) to populations of fittest
+      found = 0
+      for player in players:
+        if found == 2:
+          break
+
+        if player.selectable == 0 and found == 0:
+          player.model.set_weights(weightsnew1)
+          player.selectable = 1
+          found += 1
+
+        if player.selectable == 0 and found == 1:
+          player.model.set_weights(weightsnew2)
+          player.selectable = 1
+          found += 1
+
+
+
 
 
   # Mutates players genes
   def model_mutate(self, weights):
     for xi in range(len(weights)):
       for yi in range(len(weights[xi])):
-        if np.random.uniform(0, 1) > 0.50:
-          change = np.random.uniform(5, 6)
+        if np.random.uniform(0, 1) < self.MUTATION_RATE:
+          change = np.random.uniform(-0.5, 0.5)
           weights[xi][yi] += change
     return weights
+
+
+  def initialize_game(self, players):
+    for player in players:
+      player.fitness = 0
+      player.selectable = 0
+      player.played = 0
+    self.driver.refresh()
 
 
 
